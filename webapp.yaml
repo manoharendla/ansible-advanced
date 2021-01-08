@@ -1,0 +1,68 @@
+---
+- name: Setup Python
+  hosts: web,db
+  tasks:
+    - name: Pip install
+      yum:
+        name: epel-release
+        state: present
+      register: dcos_yum_epel_install
+      retries: 3
+      delay: 60
+      until: dcos_yum_epel_install is success
+  
+    - name: Install python dependencies
+      yum:
+        name: "{{ packages }}"
+        state: latest
+      vars:
+        packages:
+        - python
+        - python-pip
+
+- name: Install mysql
+  hosts: db
+  tasks:
+    - name: Download mysql
+      get_url:
+        url:  https://dev.mysql.com/get/mysql57-community-release-el7-9.noarch.rpm
+        dest: /var/
+    - name: Install mysql release
+      yum:
+       name: /var/mysql57-community-release-el7-9.noarch.rpm
+       state: present
+    - name: Install mysql package
+      yum:
+       name: mysql-server
+       state: present
+    - name: Start service
+      service:
+        name: mysqld
+        state: started
+        enabled: yes
+    - name: Create database
+      mysql_db:
+        name: employee_db
+        state: present
+    - name: Create User
+      mysql_user:
+        name: db_user
+        password: Passw0rd
+        priv: '*.*:ALL'
+        state: present
+        host: '%'
+    - name: Install pip
+      pip:
+        name: "{{ item }}"
+        state: present
+      with_items:
+        - flask
+        - flask-mysql
+    - name: Copy app.py
+      copy:
+        src: app.py
+        dest: /var/app.py
+    - name: Run app
+      shell: FLASK_APP=/var/app.py nohup flask run --host=0.0.0.0
+      
+
