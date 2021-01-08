@@ -1,7 +1,7 @@
 ## Ansible tower
 
 ### Logon to ansible tower with admin/admin
-[Contribution guidelines for this project](images/login.png)
+![](images/login.PNG)
 
 ### Create Credentials for gihtub token. The credentials involved in Ansible tower and github communication
 ![](images/cred1.png)
